@@ -1,4 +1,6 @@
 // Implements a dictionary's functionality
+#include "dictionary.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
@@ -6,66 +8,45 @@
 #include <string.h>
 #include <ctype.h>
 
-#include "dictionary.h"
-
-// Function prototypes
-int hash_index(char *hash_this);
+#define N 10000
 
 // Represents a node in a hash table
 typedef struct node
 {
     char word[LENGTH + 1];
     struct node *next;
-}
-node;
+} node;
 
 // counter for words in the dictionary;
 unsigned int word_count = 0;
 
-// Number of buckets in hash table
-const unsigned int N = 10000;
-
 // Hash table
-node *hashtable[N] = {NULL};
+node *hashtable[N];
 
 // Returns true if word is in dictionary else false
-bool check(const char *word)
+bool check(char word[LENGTH + 1])
 {
-    // TODO
-    int len = strlen(word);
-    char copy[len];
-    for (int i = 0; i < len; i++)
-    {
-        copy[i] = tolower(word[i]);
-    }
-    copy[len] = '\0';
+    char lower[LENGTH + 1];
 
-    int h = hash(copy);
+    to_lower(lower, word);
 
+    int h = hash(lower);
     node *cursor = hashtable[h];
 
-    while (cursor != NULL)
-    {
-        if (strcasecmp(cursor->word, copy) == 0)
-        {
-            return true;
-        }
-        else
-        {
-            cursor = cursor->next;
-        }
-    }
-    return false;
+    while (cursor != NULL && strcasecmp(cursor->word, lower) != 0)
+        cursor = cursor->next;
+
+    return cursor != NULL;
 }
 
 // Hashes word to a number
 unsigned int hash(const char *word)
 {
     unsigned int hash = 0;
+
     for (int i = 0, n = strlen(word); i < n; i++)
-    {
         hash = (hash << 2) ^ word[i];
-    }
+
     return hash % N;
 }
 
@@ -73,18 +54,15 @@ unsigned int hash(const char *word)
 bool load(const char *dictionary)
 {
     FILE *file = fopen(dictionary, "r");
-    if (file == NULL)
-    {
-        printf("Error reading file.");
-        return false;
-    }
-    char word[LENGTH - 1];
+    if (file == NULL) return false;
+
+    char word[LENGTH + 1];
 
     while (fscanf(file, "%s", word) != EOF)
     {
         // Allocate space for a new node;
         node *new_node = malloc(sizeof(node));
-        
+
         // Check if allocation succeeded;
         if (new_node == NULL)
         {
@@ -93,28 +71,19 @@ bool load(const char *dictionary)
         }
 
         // Copy word into new node
-        strcpy(new_node->word, word);
-        
+        strncpy(new_node->word, word, LENGTH + 1);
+
         // Calculate index for insertion;
         int i = hash(new_node->word);
 
-        // Initializes head to point to hashtable index/bucket
+        // Initializes head to point to hashtable index
         node *head = hashtable[i];
 
-        // Insert nodes at the beggining of the linked list
-        if (head == NULL)
-        {
-            hashtable[i] = new_node;
-            new_node->next = NULL;
-            word_count++;
-        }
-        else
-        {
-            new_node->next = hashtable[i];
-            hashtable[i] = new_node;
-            word_count++;
-        }
+        new_node->next = hashtable[i];
+        hashtable[i] = new_node;
+        word_count++;
     }
+
     fclose(file);
     return true;
 }
@@ -132,6 +101,7 @@ bool unload(void)
     {
         node *head = hashtable[i];
         node *cursor = head;
+
         // freeing linked lists
         while (cursor != NULL)
         {
@@ -143,3 +113,10 @@ bool unload(void)
     return true;
 }
 
+void to_lower(char t[LENGTH + 1], char s[LENGTH + 1])
+{
+    strcpy(t, s);
+    for(int i = 0; t[i]; i++)
+        t[i] = tolower(t[i]);
+
+}

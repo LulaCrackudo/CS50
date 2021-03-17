@@ -48,12 +48,8 @@ int count_chars(char *text)
 {
     int chars = 0;
     for (int i = 0; text[i] != '\0'; i++)
-    {
         if (isalnum(text[i]) != 0)
-        {
             chars++;
-        }
-    }
     return chars;
 }
 
