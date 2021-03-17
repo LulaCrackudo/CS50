@@ -8,7 +8,7 @@ typedef uint8_t BYTE;
 typedef struct
 {
     BYTE SOI[2]; // Start of image marker
-    BYTE APP[1]; // Applicatio Use marker
+    BYTE APP[1]; // Application Use marker
 } JPEGHEAD;
 
 typedef struct
